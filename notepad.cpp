@@ -1,5 +1,6 @@
 #include <iostream>
 #include <cstring>
+#include <string>
 using namespace std;
 
 #define MAX 1000
@@ -62,10 +63,12 @@ public:
 
     void deleteText(int count) {
         int len = strlen(text);
+        if (count < 0) count = 0;
         if (count > len) count = len;
         undoStack.push(text);
         text[len - count] = '\0';
         redoStack.clear();
+        showText(); // langsung tampilkan hasil
     }
 
     void undo() {
@@ -96,7 +99,7 @@ int main() {
     char temp[MAX];
     int choice;
 
-    while (1) {
+    while (true) {
         cout << "\n--- MENU ---\n";
         cout << "1. Tambah teks biasa\n";
         cout << "2. Tambah teks BOLD\n";
@@ -108,8 +111,16 @@ int main() {
         cout << "8. Tampilkan teks\n";
         cout << "9. Keluar\n";
         cout << "Pilihan: ";
-        cin >> choice;
-        cin.ignore();
+
+        string input;
+        getline(cin, input);
+
+        if (input.length() != 1 || input[0] < '1' || input[0] > '9') {
+            cout << "Pilihan tidak valid!\n";
+            continue;
+        }
+
+        choice = input[0] - '0';
 
         switch (choice) {
             case 1:
@@ -132,13 +143,19 @@ int main() {
                 cin.getline(temp, sizeof(temp));
                 editor.addStyledText(temp, "\033[3m"); // italic
                 break;
-            case 5:
+            case 5: {
                 int jumlah;
                 cout << "Jumlah karakter yang ingin dihapus: ";
-                cin >> jumlah;
-                cin.ignore();
+                if (!(cin >> jumlah)) {
+                    cout << "Input tidak valid!\n";
+                    cin.clear();
+                    cin.ignore(1000, '\n');
+                    break;
+                }
+                cin.ignore(); // bersihkan newline
                 editor.deleteText(jumlah);
                 break;
+            }
             case 6:
                 editor.undo();
                 break;
@@ -149,9 +166,8 @@ int main() {
                 editor.showText();
                 break;
             case 9:
+                cout << "Keluar dari program...\n";
                 return 0;
-            default:
-                cout << "Pilihan tidak valid!\n";
         }
     }
 }
